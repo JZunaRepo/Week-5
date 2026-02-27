@@ -1,0 +1,24 @@
+---
+title: "Week 5A Approach"
+author: "Jonnathan Zuna Largo"
+format: html
+editor: visual
+---
+
+## Introduction
+
+This project analyzes arrival delays of airlines across different destinations. The objective is to recreate the original table in a structured data format, transform it into a tidy dataset using R, and evaluate airline performance using percentage-based comparisons rather than raw counts. The final deliverable includes a fully reproducible R Markdown file with narrative explanations of data preparation, transformation, analysis, and conclusions, published to both GitHub and RPubs.
+
+## Approach
+
+The first step is to recreate the original table in a .csv file using the same wide structure shown in the link (provided in the requirements), making sure to preserve any empty cells exactly as they appear. This ensures the dataset mirrors the source and allows for proper demonstration of tidying and transformation techniques later in the analysis.
+
+Next, the file will be imported into R, where tidyr and dplyr will be used to clean and transform the data. This includes filling up missing values when appropriate and reshaping the dataset from a wide to long format so that each observation represents a clear Arline to city status combination. This tidy structure will make calculations and comparisons more efficient and transparent.
+
+After the data is prepared, percentage-based metrics (such as delay rates or arrival rates) will be calculated both overall and by city. The two airlines will then be compared using summary tables and/or visualizations. The analysis will focus on percentages rather than raw counts to provide a fair performance comparison.
+
+Finally, all code, explanations, and conclusions will be documented in an R Markdown file. The completed .Rmd file will be uploaded to GitHub, and then the rendered output will be published to RPubs, with both links included in the final submission.
+
+## Roadblocks
+
+One challenge may be ensuring that missing values are handled correctly without altering the original structure of the dataset. It is important to distinguish between true missing data and values that need to be calculated from totals. Another potential issue involves reshaping the data from wide to long format. Errors can occur if totals or grouped variables are not properly accounted for during transformation.

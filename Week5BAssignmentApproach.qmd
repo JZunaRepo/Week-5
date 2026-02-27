@@ -1,0 +1,26 @@
+---
+title: "Week5BApproach"
+author: "Jonnathan Zuna Largo"
+format: html
+editor: visual
+---
+
+## Introduction
+
+This project builds on the previously cleaned and structured chess tournament dataset to evaluate player performance relative to rating-based expectations. Using each player’s pre-tournament rating and the ratings of their opponents, we calculated expected scores using a sourced Elo expected score formula. These expected totals were then compared to actual tournament results to determine which players exceeded expectations and which fell short. The objective is to quantify performance relative to rating strength rather than raw points alone.
+
+## Approach
+
+-   Use each player’s pre-rating and opponent pre-ratings to calculate expected score per game using an Elo probability formula (GeeksforGeeks. (n.d.). *Elo rating algorithm*. <https://www.geeksforgeeks.org/dsa/elo-rating-algorithm/>).
+
+-   Sum expected game-level probabilities to obtain each player’s total expected tournament score.
+
+-   Subtract expected score from actual score to measure overperformance or underperformance.
+
+-   Rank players by score difference.
+
+-   Identify the five highest positive differences (overperformers) and five lowest negative differences (underperformers).
+
+## Roadblocks
+
+One challenge is if careful ranking is necessary to correctly interpret whether differences reflected meaningful overperformance or simply variance within a small number of games.
