@@ -1,0 +1,184 @@
+---
+title: "Week 5A Code"
+author: "Jonnathan Zuna Largo"
+output: html_document
+date: "2026-03-02"
+---
+
+## Introduction
+
+This project analyzes arrival delays of airlines across different destinations. The objective is to recreate the original table in a structured data format, transform it into a tidy dataset using R, and evaluate airline performance using percentage-based comparisons rather than raw counts. The final deliverable includes a fully reproducible R Markdown file with narrative explanations of data preparation, transformation, analysis, and conclusions, published to both GitHub and RPubs.
+
+## Body
+
+### Source
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+```
+
+Kaggle = <https://www.kaggle.com/datasets/umeradnaan/flight-delays-dataset?select=flight_delays.csv> Notes: Given the size of the file, the data was filtered to Airlines "Delta" "United" with destination to "JFK"
+
+```{r}
+url <- "https://raw.githubusercontent.com/JZunaRepo/Week-5/refs/heads/main/filtered_flights.csv"
+
+df <- read.csv(
+  file = url
+)
+
+glimpse(df)
+```
+
+### Wide Table Recreation
+
+In order to replicate the wide table provided for thsi assignment, I will select the top 5 origins to compare
+
+```{r}
+top5_origins <- df %>%
+  count(Origin, sort = TRUE) %>%
+  slice_head(n = 5) %>%
+  pull(Origin)
+```
+
+In the following section first I will use the top 5 origins I selected above and then use them to filter the data set. At the same time, I will create labels based om the "DelayMinutes" filed to label the flights that were delayed and the flights that were on time for each airline.
+
+```{r}
+counts_long <- df %>%
+  filter(Origin %in% top5_origins) %>%
+  mutate(
+    status = if_else(DelayMinutes > 0, "delayed", "on time")
+  ) %>%
+  count(Airline, status, Origin, name = "count") %>%
+  complete(
+    Airline,
+    status = c("on time", "delayed"),
+    Origin = top5_origins
+  ) %>%
+  replace_na(list(count = 0))
+```
+
+The last step is to recreate the wide table using the dataframe created above by creating a status for each ariline and a column for each of the top airlines in the original dataset.
+
+```{r}
+flights_wide <- counts_long %>%
+  mutate(status = factor(status, levels = c("on time", "delayed"))) %>%
+  arrange(Airline, status) %>%
+  pivot_wider(names_from = Origin, values_from = count)
+
+flights_wide
+```
+
+### Data Transformation
+
+Transforming the data from wide to long
+
+```{r}
+counts_long <- flights_wide %>%
+  pivot_longer(
+    cols = all_of(top5_origins),
+    names_to = "Origin",
+    values_to = "count"
+  )
+```
+
+### Analysis
+
+Overall delay by airline Table
+
+```{r}
+
+overall_rates <- counts_long %>%
+  group_by(Airline, status) %>%
+  summarise(total = sum(count), .groups = "drop") %>%
+  pivot_wider(names_from = status, values_from = total) %>%
+  mutate(
+    total_flights = `on time` + delayed,
+    delay_rate = delayed / total_flights
+  ) %>%
+  select(Airline, `on time`, delayed, total_flights, delay_rate)
+
+overall_rates
+```
+
+Overall delay by airline chart
+
+```{r}
+overall_rates %>% 
+  ggplot(aes(x = Airline, y = delay_rate, fill = Airline)) + 
+  geom_col() + 
+  geom_text(
+    aes(label = paste0(round(delay_rate * 100, 1), "%")),
+    vjust = 1.5,
+    color = "white",
+    fontface = "bold",
+    size = 4
+  ) +
+  scale_fill_brewer(palette = "Set2") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Overall Delay Rate by Airline",
+    y = "Delay Rate",
+    x = NULL
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+Anthropic. (2025). Claude Opus 4.5 [Large language model]. <https://claude.ai.> Accessed March 1, 2026.
+
+Delay by city and airline table
+
+```{r}
+city_rates <- counts_long %>%
+  group_by(Origin, Airline, status) %>%
+  summarise(total = sum(count), .groups = "drop") %>%
+  pivot_wider(names_from = status, values_from = total) %>%
+  mutate(
+    total_flights = `on time` + delayed,
+    delay_rate = delayed / total_flights
+  ) %>%
+  arrange(Origin, delay_rate)
+
+city_rates
+```
+
+Delay by city and airline chart
+
+```{r}
+city_rates %>%
+  ggplot(aes(x = Origin, y = delay_rate, fill = Airline)) +
+  geom_col(position = "dodge") +
+  geom_text(
+    aes(label = paste0(round(delay_rate * 100, 1), "%")),
+    position = position_dodge(width = 0.9),
+    vjust = 1.5,
+    color = "white",
+    fontface = "bold",
+    size = 3
+  ) +
+  scale_fill_brewer(palette = "Set2") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Delay Rate by Origin and Airline",
+    y = "Delay Rate",
+    x = NULL
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+Anthropic. (2025). Claude Opus 4.5 [Large language model]. <https://claude.ai.> Accessed March 1, 2026.
+
+## Conclusion
+
+### Overall Comparison
+
+Looking at the aggregated delayed rates, one airline perform almost the same. Delta's delay rate is about 73.28% while United's is 73.22% these difference is less than a percentage point. This tells us that when all flights are combined, neither airline is better overall. The aggregate comparison suggest a head to head in performance and reinforces that small numerical difference at this scale is practically redundant.
+
+However, when we take a look at the city by city breakdown it shows a subtle variation. United shows slightly lower delay rates in the individual origins, while Delta performs marginally better in one and ties in another. These differences are small but it still shows that performance can shift depending on the location. This contrast between aggregated results and stratified results reinforces the idea of how important considering weighting effects. Overall delay rates are weighted averages influenced by flight volume at each origin, the combined metric can hide each city level differences.
+
+This reflects the logic behind Simpson’s paradox which tells us that conclusions drawn from aggregated data may not fully capture patterns observed within subgroups, underscoring why both overall and stratified analyses are necessary before forming final judgments.
